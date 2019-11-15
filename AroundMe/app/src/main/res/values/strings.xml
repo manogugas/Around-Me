@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">AroundMe</string>
+
+    <string name="searchButton">Around Me</string>
+    <string name="optionsButton">Options</string>
+    <string name="distanceText">Atstumas</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="seekBarMaxString">10</string>
+    <string name="seekBarMinString">0.1</string>
+
+    <string name="AddButton">Add</string>
+    <string name="RemoveButton">Remove</string>
+
+
+    <string name="ImageDescription">description</string>
+    <string name="ImageTitle_Event">title</string>
+    <string name="ImageDescription_Event">description</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+</resources>
