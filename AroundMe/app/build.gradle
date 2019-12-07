@@ -10,7 +10,8 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        multiDexEnabled true //important
+        multiDexEnabled true
+        signingConfig signingConfigs.debug//important
     }
     buildTypes {
         release {
@@ -37,6 +38,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.github.kimkevin:cachepot:1.2.0'
+    implementation 'com.android.support:design:28.0.0'
     //implementation 'com.android.support:design:27.0.2'
     //implementation("com.squareup.okhttp3:okhttp:4.2.1")
 }

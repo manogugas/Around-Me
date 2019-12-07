@@ -1,23 +1,39 @@
 package com.example.aroundme.ui.dashboard;
 
+import android.animation.ValueAnimator;
+import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.text.InputType;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.MenuPopupWindow;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -25,11 +41,13 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.aroundme.EventInfo;
+import com.example.aroundme.IndicatingView;
 import com.example.aroundme.ListAdapter;
 import com.example.aroundme.ListItem;
 import com.example.aroundme.ModelPost;
 import com.example.aroundme.R;
 import com.example.aroundme.RequestOperator;
+import com.github.kimkevin.cachepot.CachePot;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -40,26 +58,30 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 
-
-public class DashboardFragment extends Fragment implements OnMapReadyCallback, RequestOperator.RequestOperatorListener {
+public class DashboardFragment extends Fragment implements OnMapReadyCallback, RequestOperator.RequestOperatorListener, AdapterView.OnItemSelectedListener{
 
 
     private DashboardViewModel dashboardViewModel;
 
-
-    private ListView mylist;
-    private ListAdapter adapter;
     private Context context = getActivity();
 
+
+    public static List<ListItem> EventList;
 
     List<ListItem> items = new ArrayList<>();
 
@@ -75,29 +97,85 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
     private static Location mLastKnownLocation;
     private CameraPosition mCameraPosition;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-
+    Circle circle;
     // The entry points to the Places API.
     //private GeoDataClient mGeoDataClient;
     //private PlaceDetectionClient mPlaceDetectionClient;
 
     private ModelPost[] publication;
-    TextView title;
-    TextView bodyText;
+    //private ModelPost[] publication2;
+    private ModelPost[] publicationfinal;
 
     Button searchButton;
     private static int inputDistance = 20;
+    private static int inputOffset = 0;
+    private static String fromDate = "";
+    private static String toDate = "";
+    private static String SelectedCategory = "";
+    private boolean requestDone = false;
+
+    final Calendar myCalendar = Calendar.getInstance();
+    final Calendar myCalendar2 = Calendar.getInstance();
+    private String m_Text = "";
+    DatePickerDialog.OnDateSetListener date;
+    DatePickerDialog.OnDateSetListener date2;
+    private String dateString = "";
+
+    private Fragment mMyFragment;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         dashboardViewModel =
                 ViewModelProviders.of(this).get(DashboardViewModel.class);
         View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
-      // final TextView textView = root.findViewById(R.id.text_dashboard);
+
+
+        //get the spinner from the xml.
+        //Spinner dropdown = root.findViewById(R.id.categoriesList);
+        //create a list of items for the spinner.
+        //String[] items = new String[]{"1", "2", "three"};
+        //create an adapter to describe how the items are displayed, adapters are used in several places in android.
+        //There are multiple variations of this, but this is the basic variant.
+        //ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, items);
+        //ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter.createFromResource(getContext(), R.array.categories_array, android.R.layout.simple_spinner_item);
+        //set the spinners adapter to the previously created one.
+        //dropdown.setAdapter(staticAdapter);
+
+
 
 
         if (savedInstanceState != null) {
+            Log.e("UZKRAUTA", "uzkrauta Search (DashBoard)");
+
+            mMyFragment = getActivity().getSupportFragmentManager().getFragment(savedInstanceState, "DashboardFragment");
+            //Restore the fragment's instance
+            Log.e("LOADED", "uzkrauta issaugota info");
+
+            publicationfinal = (ModelPost[]) savedInstanceState.getParcelableArray("Publication");
+
             mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
+
+            LatLng location;
+
+
+            for(int i = 0; i < publicationfinal.length; i++) {
+                double[] eventLoc = publicationfinal[i].getLocation();
+
+                location = new LatLng(eventLoc[1], eventLoc[0]);
+                mMap.addMarker(new MarkerOptions().position(location).title("\"" + publicationfinal[i].getTitle() + "\""));
+            }
         }
+
+        try{
+            publicationfinal = CachePot.getInstance().pop("DashBoard");
+        } catch (Exception ex)
+        {
+            Log.e("Exception", "null");
+        }
+
+        Log.e("Veikia", "veikia on create view");
+
+
 
 
         mFusedLocationProviderClient = (FusedLocationProviderClient) LocationServices.getFusedLocationProviderClient(getActivity());
@@ -106,46 +184,9 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
         SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mylist = root.findViewById(R.id.listview);
 
         searchButton = root.findViewById(R.id.searchButton);
-        title = root.findViewById(R.id.title);
-        bodyText = root.findViewById(R.id.bodyText);
-
         searchButton.setOnClickListener(searchButtonListener);
-
-
-        items.add(new ListItem("Mathematics", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdfjhjhgdsv ughfdshufdsiafdshjkfarjhi" + "sapcee and change"));
-        items.add(new ListItem("Physics", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasaaaaaaaaaaaadshjkfarjhi" + "sapcee and change"));
-        items.add(new ListItem("Chemistry", R.drawable.ic_3d_rotation_black_48dp, "Mat testfabbbbbbbbbbbbbbbbshjkfarjhi" + "sapcee and change"));
-        items.add(new ListItem("Informatics", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdcccccccccccccccafdshjkfarjhi" + "sapcee and change"));
-        items.add(new ListItem("Geography", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdfjddddddddddddddddddfarjhi" + "sapcee and change"));
-
-        adapter = new ListAdapter(getActivity(), items);
-        mylist.setAdapter((adapter));
-
-
-        mylist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-                //Log.i("list item Click", "Position: "+position+" id: "+id);
-                Log.i("list item Click INFO", "Title: "+items.get(position).getTitle()+" desc: "+items.get(position).getDescription()+" image?: "+items.get(position).getImageId());
-                /*
-                Intent intent = new Intent(context, EventInfo.class);
-                //based on item add info to intent
-                intent.putExtra("Title", items.get(position).getTitle());
-                intent.putExtra("Description", items.get(position).getDescription());
-                intent.putExtra("ImageId", items.get(position).getImageId());
-                intent.putExtra("myItemList", (Serializable) items);
-                context.startActivity(intent);*/
-
-
-
-            }
-        });
-
 
         dashboardViewModel.getText().observe(this, new Observer<String>() {
             @Override
@@ -154,113 +195,263 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
             }
         });
 
+
+
+        //EditText edittext= (EditText) root.findViewById(R.id.Birthday);
+
+
+
+
+
         return root;
     }
+/*
+    edittext.setOnClickListener(new DialogInterface.OnClickListener() {
 
-    View.OnClickListener searchButtonListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                sendRequest();
-            }
+        @Override
+        public void onClick(View v) {
+            // TODO Auto-generated method stub
+            new DatePickerDialog(classname.this, date, myCalendar
+                    .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                    myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+        }
+    });*/
+
+
+    private void updateLabel() {
+        String myFormat = "MM/dd/yy"; //In which you need put here
+        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
+
+        dateString = sdf.format(myCalendar.getTime());
+        //edittext.setText(sdf.format(myCalendar.getTime()));
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+
+        Log.e("Listas", "pasirinkta"+position);
+        switch (position) {
+            case 0:
+                // Whatever you want to happen when the first item gets selected
+
+                break;
+            case 1:
+                // Whatever you want to happen when the second item gets selected
+                break;
+            case 2:
+                // Whatever you want to happen when the thrid item gets selected
+                break;
+
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+        // TODO Auto-generated method stub
+    }
+
+
+    final View.OnClickListener searchButtonListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+
+            LayoutInflater inflater = getLayoutInflater();
+            View view = inflater.inflate(R.layout.searchtitleviewlayout, null);
+            builder.setCustomTitle(view);
+            //builder.setTitle("Filters");
+
+            // Set up the input
+            //final EditText input = new EditText(getContext());
+            // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+            //input.setInputType(InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_DATE);
+            //builder.setView(input);
+
+
+            //Context context = mapView.getContext();
+            LinearLayout layout = new LinearLayout(getContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+
+            // Add a TextView here for the "Title" label, as noted in the comments
+            final Spinner titleBox = new Spinner(getContext());
+            //titleBox.setHint("Title");
+
+            ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter.createFromResource(getContext(), R.array.categories_array, R.layout.spinneritemstyle);
+            //set the spinners adapter to the previously created one.
+            titleBox.setAdapter(staticAdapter);
+
+            layout.addView(titleBox); // Notice this is an add method
+
+
+            final EditText distanceInput = new EditText(getContext());
+            distanceInput.setHint("Distance from you (in km)");
+            distanceInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NULL);
+            layout.addView(distanceInput);
+
+            /*
+            final EditText dateInputTo = new EditText(getContext());
+            dateInputTo.setHint("To event date");
+            dateInputTo.setInputType(InputType.TYPE_CLASS_DATETIME | InputType.TYPE_NULL);*/
+
+            final TextView dateInputFrom = new TextView(getContext());
+            dateInputFrom.setText("From event date");
+            dateInputFrom.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 23);
+            dateInputFrom.setPadding(20, 30, 0, 0);
+            layout.addView(dateInputFrom);
+
+
+            final TextView dateInputTo = new TextView(getContext());
+            dateInputTo.setText("To event date");
+            dateInputTo.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 23);
+            dateInputTo.setPadding(20, 20, 0, 0);
+            layout.addView(dateInputTo);
+
+            builder.setView(layout); // Again this is a set method, not add
+
+//<item name="android:background">@color/colorBackgroundTransparent</item>
+                /*
+                new DatePickerDialog(getContext(), date, myCalendar
+                        .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                        myCalendar.get(Calendar.DAY_OF_MONTH)).show();*/
+
+
+            dateInputFrom.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new DatePickerDialog(getContext(), date, myCalendar
+                            .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                            myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+                }
+            });
+
+            dateInputTo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new DatePickerDialog(getContext(), date2, myCalendar2
+                            .get(Calendar.YEAR), myCalendar2.get(Calendar.MONTH),
+                            myCalendar2.get(Calendar.DAY_OF_MONTH)).show();
+                }
+            });
+
+            date = new DatePickerDialog.OnDateSetListener() {
+
+                @Override
+                public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                      int dayOfMonth) {
+                    // TODO Auto-generated method stub
+                    myCalendar.set(Calendar.YEAR, year);
+                    myCalendar.set(Calendar.MONTH, monthOfYear);
+                    myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    //updateLabel();
+
+                    String myFormat = "Y-MM-dd"; //In which you need put here
+                    SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.getDefault());
+
+                    dateString = sdf.format(myCalendar.getTime());
+                    fromDate = dateString;
+                    dateInputFrom.setText(dateString);
+                }
+
+            };
+
+            date2 = new DatePickerDialog.OnDateSetListener() {
+
+                @Override
+                public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                      int dayOfMonth) {
+                    // TODO Auto-generated method stub
+                    myCalendar2.set(Calendar.YEAR, year);
+                    myCalendar2.set(Calendar.MONTH, monthOfYear);
+                    myCalendar2.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    //updateLabel();
+
+                    if(dateInputFrom.getText().toString().isEmpty())
+                    {
+                        dateInputTo.setText("");
+                        dateInputTo.setHint("Fill From Date first");
+                    }
+                    else {
+
+                        String myFormat = "Y-MM-dd"; //In which you need put here
+                        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.getDefault());
+                        Date d = null;
+
+                       // Log.e("testas", "pries vertima");
+
+                        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-mm-dd", Locale.getDefault());
+                        try {
+                            d = sdf2.parse(dateInputFrom.getText().toString());
+                        } catch (ParseException ex) {
+                            Log.v("Exception", ex.getLocalizedMessage());
+                        }
+                        long month = 657450000;//divided by 4
+
+                        //Log.e("testas", "pries null");
+
+                        if (d != null) {
+                            //Log.e("testas", "toDate:"+myCalendar2.getTimeInMillis()+" FromDate: "+myCalendar.getTimeInMillis()+" addedTime:"+(myCalendar.getTimeInMillis() + (month * 4)));
+                            //Log.e("testas", "toDate:"+dateInputFrom.getText().toString()+" FromDate: "+d.toString()+" addedTime:"+(d.getTime() + (month * 4)));
+                            if (myCalendar2.getTimeInMillis() < (myCalendar.getTimeInMillis() + (month * 4)) && myCalendar2.getTimeInMillis() >= myCalendar.getTimeInMillis()) {
+                                Log.e("testas", "successful");
+
+                                dateString = sdf.format(myCalendar2.getTime());
+                                toDate = dateString;
+                                dateInputTo.setText(dateString);
+                            } else {
+                                Log.e("testas", "failed");
+                                dateInputTo.setText("");
+                                dateInputTo.setHint("FromDate <= ToDate < FromDate + 1 Month");
+                            }
+                        }
+                    }
+                }
+
+            };
+
+            // Set up the buttons
+            builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //m_Text = input.getText().toString();
+                    SelectedCategory = titleBox.getSelectedItem().toString();
+
+                    //distance from user
+                    String value= distanceInput.getText().toString();
+                    inputDistance = Integer.parseInt(value);
+
+                    //resetting request/ map markers/ map distance circle
+                    requestDone = false;
+                    inputOffset = 0;
+                    mMap.clear();
+                    getDeviceLocation();
+                    sendRequest();
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+            builder.show();
+            //sendRequest();
+        }
     };
 
 
-/*
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
+
+    public void setIndicatorStatus(final IndicatingView Indicator, final int status)
     {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.secondactivitydesign);
-
-
-        //addButton = (Button)findViewById(R.id.addButton);
-        //removeButton = (Button) findViewById(R.id.removeButton);
-
-        if (savedInstanceState != null) {
-            mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
-            mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
-        }
-
-        // Construct a GeoDataClient.
-        // mGeoDataClient = Places.getGeoDataClient(this, null);
-
-        // Construct a PlaceDetectionClient.
-        //mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
-
-        // Construct a FusedLocationProviderClient.
-        mFusedLocationProviderClient = (FusedLocationProviderClient)LocationServices.getFusedLocationProviderClient(this);
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-
-        addButton.setOnClickListener(addButtonClick);
-        removeButton.setOnClickListener(removeButtonClick);
-
-        mylist = (ListView) findViewById(R.id.listView);
-
-
-
-        Intent intent = getIntent();
-        if(getIntent().getBooleanExtra("flag", true))
-        {
-            items.add(new ListItem("Jack", R.drawable.ic_3d_rotation_black_48dp, "Mathematics, Chemistry"));
-            items.add(new ListItem("Jane", R.drawable.ic_3d_rotation_black_48dp, "Physics, Informatics"));
-            items.add(new ListItem("Bob", R.drawable.ic_3d_rotation_black_48dp, "Mathematics, Informatics"));
-            items.add(new ListItem("Clara", R.drawable.ic_3d_rotation_black_48dp, "Geography, Chemistry"));
-            items.add(new ListItem("Sam", R.drawable.ic_3d_rotation_black_48dp, "Mathematics, Physics"));
-        }
-        else
-        {//ic_3d_add_black_48dp
-            items.add(new ListItem("Mathematics", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdfjhjhgdsv ughfdshufdsiafdshjkfarjhi" + "sapcee and change"));
-            items.add(new ListItem("Physics", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasaaaaaaaaaaaadshjkfarjhi" + "sapcee and change"));
-            items.add(new ListItem("Chemistry", R.drawable.ic_3d_rotation_black_48dp, "Mat testfabbbbbbbbbbbbbbbbshjkfarjhi" + "sapcee and change"));
-            items.add(new ListItem("Informatics", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdcccccccccccccccafdshjkfarjhi" + "sapcee and change"));
-            items.add(new ListItem("Geography", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdfjddddddddddddddddddfarjhi" + "sapcee and change"));
-        }
-        adapter = new ListAdapter(this, items);
-        mylist.setAdapter((adapter));
-
-
-        mylist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        getActivity().runOnUiThread(new Runnable() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-                //Log.i("list item Click", "Position: "+position+" id: "+id);
-                //Log.i("list item Click INFO", "Title: "+items.get(position).getTitle()+" desc: "+items.get(position).getDescription()+" image?: "+items.get(position).getImageId());
-
-                Intent intent = new Intent(context, EventInfo.class);
-                //based on item add info to intent
-                intent.putExtra("Title", items.get(position).getTitle());
-                intent.putExtra("Description", items.get(position).getDescription());
-                intent.putExtra("ImageId", items.get(position).getImageId());
-                intent.putExtra("myItemList", (Serializable) items);
-                context.startActivity(intent);
+            public void run() {
+                Indicator.setState(status);
+                Indicator.invalidate();
             }
         });
     }
-
-    View.OnClickListener addButtonClick = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            items.add(new ListItem("Pridetas", R.drawable.ic_3d_add_black_48dp, "Added list item" + "sapcee and change"));
-            adapter.notifyDataSetChanged();
-        }
-    };
-
-    View.OnClickListener removeButtonClick = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-            if(items.size() > 0)
-            {
-                items.remove(items.size()-1);
-                adapter.notifyDataSetChanged();
-            }
-        }
-    };*/
 
 
     public void sendRequest()
@@ -277,54 +468,38 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
            @Override
            public void run()
            {
-               if(publication != null)
+               if(publicationfinal != null)
                {
-
-                   adapter.clear();
+                   getDeviceLocation();
 
                    LatLng location = new LatLng(0, 0);
 
-                   if(publication.length > 0) location = new LatLng(publication[0].getLocation()[0], publication[0].getLocation()[1]);
+                   if(publicationfinal.length > 0) location = new LatLng(publicationfinal[0].getLocation()[0], publicationfinal[0].getLocation()[1]);
                     else getDeviceLocation();
 
-                    Log.i("aaa", "ilgis: "+publication.length);
+                    Log.i("aaa", "ilgis: "+publicationfinal.length);
 
-                   for(int i = 0; i < publication.length; i++)
+                   CachePot.getInstance().push(1, publicationfinal);
+
+                   for(int i = 0; i < publicationfinal.length; i++)
                    {
                        Log.i("bbb", "interation: "+i);
-                       double[] eventLoc = publication[i].getLocation();
+                       double[] eventLoc = publicationfinal[i].getLocation();
 
                        location = new LatLng(eventLoc[1], eventLoc[0]);
-                       mMap.addMarker(new MarkerOptions().position(location).title("\""+publication[i].getTitle()+"\""));
+                       mMap.addMarker(new MarkerOptions().position(location).title("\""+publicationfinal[i].getTitle()+"\""));
 
 
-
-                       items.add(new ListItem(publication[i].getTitle(), R.drawable.ic_people, publication[i].getName()+"\n"
-                               + publication[i].getFormatted_address()));
-
-
-                       /*items.add(new ListItem("Physics", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasaaaaaaaaaaaadshjkfarjhi" + "sapcee and change"));
-                       items.add(new ListItem("Chemistry", R.drawable.ic_3d_rotation_black_48dp, "Mat testfabbbbbbbbbbbbbbbbshjkfarjhi" + "sapcee and change"));
-                       items.add(new ListItem("Informatics", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdcccccccccccccccafdshjkfarjhi" + "sapcee and change"));
-                       items.add(new ListItem("Geography", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdfjddddddddddddddddddfarjhi" + "sapcee and change"));
-                        */
-
+                       items.add(new ListItem(publicationfinal[i].getTitle(), R.drawable.ic_people, publicationfinal[i].getName()+"\n"
+                               + publicationfinal[i].getFormatted_address()));
 
                    }
-
-                   adapter = new ListAdapter(getActivity(), items);
-                   mylist.setAdapter((adapter));
+                   EventList = items;
 
                    mMap.moveCamera(CameraUpdateFactory.newLatLng(location));
 
-                   //title.setText(publication[0].getTitle());
-                   //bodyText.setText(publication[0].getName());
-
-
-
                } else {
-                   title.setText("");
-                   bodyText.setText("");
+                    //FAILED
                }
            }
         });
@@ -333,14 +508,36 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
     @Override
     public void success(ModelPost[] publication)
     {
-        this.publication = publication;
-        updatePublication();
+        //this.publication2 = publication;
+        if(requestDone)
+        {
+            Log.e("testas", "3");
+            publicationfinal = new ModelPost[this.publication.length + publication.length];
+            int index = this.publication.length;
+
+            for (int i = 0; i < this.publication.length; i++) {
+                publicationfinal[i] = this.publication[i];
+            }
+            for (int i = 0; i < publication.length; i++) {
+                publicationfinal[i + index] = publication[i];
+            }
+            Log.e("testas", "4");
+            updatePublication();
+        }
+        else
+        {
+            this.publication = publication;
+            requestDone = true;
+            inputOffset = 10;
+            sendRequest();
+        }
     }
 
     @Override
     public void failed(int responseCode)
     {
         this.publication = null;
+        publicationfinal = null;
         updatePublication();
     }
 
@@ -348,10 +545,51 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.e("onSaveInstanceState","saugom dashboard");
         if (mMap != null) {
             outState.putParcelable(KEY_CAMERA_POSITION, mMap.getCameraPosition());
             outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
-            super.onSaveInstanceState(outState);
+
+        }
+
+        outState.putParcelableArray("Publication", publicationfinal);
+
+        //Save the fragment's instance
+        //getActivity().getSupportFragmentManager().putFragment(outState, "DashboardFragment", this);
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        CachePot.getInstance().clear("DashBoard");
+        CachePot.getInstance().push("DashBoard", publicationfinal);
+        Log.e("onPause","vykdom sita");
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.e("onResume","vykdom sita");
+
+
+    }
+
+    public void SetMarkers()
+    {
+        if(publicationfinal != null)
+        {
+            LatLng location;
+
+
+            for(int i = 0; i < publicationfinal.length; i++) {
+                double[] eventLoc = publicationfinal[i].getLocation();
+
+                location = new LatLng(eventLoc[1], eventLoc[0]);
+                mMap.addMarker(new MarkerOptions().position(location).title("\"" + publicationfinal[i].getTitle() + "\""));
+            }
         }
     }
 
@@ -369,11 +607,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
         getDeviceLocation();
 
 
-        // Add a marker in Sydney and move the camera
-        /*
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));*/
+        SetMarkers();
     }
 
     private void updateLocationUI() {
@@ -395,6 +629,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
         }
     }
 
+
     private void getDeviceLocation() {
         /*
          * Get the best and most recent location of the device, which may be null in rare
@@ -411,11 +646,14 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
                 {
                     if (task.isSuccessful())
                     {
+                        if(circle != null)
+                            circle.remove();
+
                         mLastKnownLocation = (Location) task.getResult();
 
                         LatLng pos = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
 
-                        float meters_per_pixel = (float)( 156543.03392 * Math.cos(pos.latitude * Math.PI / 180) / Math.pow(2, mMap.getMinZoomLevel()));
+                        float meters_per_pixel = (float)( 156543.03392 * Math.cos(pos.latitude * Math.PI / 180) / Math.pow(2, 13));
 
                         // Set the map's camera position to the current location of the device.
 
@@ -424,12 +662,12 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
                                         mLastKnownLocation.getLongitude()), meters_per_pixel));
 
 
-                        Circle circle = mMap.addCircle(new CircleOptions()
+                        circle = mMap.addCircle(new CircleOptions()
                                 .center(new LatLng(mLastKnownLocation.getLatitude(),
                                         mLastKnownLocation.getLongitude()))
                                 .radius(inputDistance*1000)
-                                .strokeColor(0xBBFF0000)
-                                .fillColor(0xAA00BCD4));
+                                .strokeColor(0x99FF0000)
+                                .fillColor(0x5500BCD4));
 
                     } else
                         {
@@ -492,5 +730,23 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
     public static int GetEventDistance()
     {
         return inputDistance;
+    }
+
+    public static int GetRequestOffset(){ return inputOffset; }
+
+
+    public static String GetFromDate()
+    {
+        return fromDate;
+    }
+
+    public static String GetToDate()
+    {
+        return toDate;
+    }
+
+    public static String GetCategory()
+    {
+        return SelectedCategory;
     }
 }

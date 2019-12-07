@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary"
+    android:background="@color/colorBackgroundTransparent"
     android:orientation="vertical">
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="90dp"
         android:layout_height="74dp"
-        android:background="@color/colorPrimary"
+        android:background="@color/colorBackgroundTransparent"
         android:contentDescription="@string/ImageDescription"
         app:srcCompat="@android:drawable/btn_star_big_on" />
 
@@ -19,14 +19,14 @@
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="33dp"
-        android:background="@color/colorPrimary"
+        android:background="@color/colorBackgroundTransparent"
         android:text="@string/ImageTitle_Event" />
 
     <TextView
         android:id="@+id/description"
         android:layout_width="match_parent"
         android:layout_height="38dp"
-        android:background="@color/colorPrimary"
+        android:background="@color/colorBackgroundTransparent"
         android:text="@string/ImageDescription_Event" />
 
     <Button
@@ -60,7 +60,7 @@
         android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="58dp"
-        android:background="@color/colorPrimary"
+        android:background="@color/colorBackgroundTransparent"
         android:text="Transfered List"
         android:textAlignment="center"
         android:textSize="30sp" />
@@ -73,7 +73,7 @@
             android:id="@+id/listViewdepreceded"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
+            android:background="@color/colorBackgroundTransparent"
             app:layout_constraintBottom_toBottomOf="parent"
             tools:layout_editor_absoluteX="-16dp">
 

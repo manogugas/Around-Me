@@ -18,8 +18,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 
+
+
 public class RequestOperator extends Thread
 {
+    public static int MAX_DISTANCE = 500;
+    public static int MIN_DISTANCE = 1;
+
+
     public interface RequestOperatorListener
     {
         void success (ModelPost[] publication);
@@ -36,7 +42,12 @@ public class RequestOperator extends Thread
     {
         super.run();
         try{
-            ModelPost[] publications = request(DashboardFragment.GetCurrentLocation(), DashboardFragment.GetEventDistance());
+            ModelPost[] publications = request(DashboardFragment.GetCurrentLocation(),
+                                                DashboardFragment.GetEventDistance(),
+                                                DashboardFragment.GetRequestOffset(),
+                                                DashboardFragment.GetFromDate(),
+                                                DashboardFragment.GetToDate(),
+                                                DashboardFragment.GetCategory());
             Log.e("Response Code: ", "testas request run");
             if(publications != null)
             {
@@ -60,27 +71,35 @@ public class RequestOperator extends Thread
     }
 
 
-    private ModelPost[] request(Location location, int distanceKM) throws IOException, JSONException {
+    private ModelPost[] request(Location location, int distanceKM, int offset, String FromDate, String ToDate, String Category) throws IOException, JSONException {
 
         //client secret: D4TRkN9l_iS9DIcy0fvDy6RtoPiIwVL6OnQbxWIjiWQb-gy-QLtvxw
         //auth key: 1xXBb6WyCUkXHtta-DGMAk2KCoh35XCd8-bSA402
         //url address
 
+        //?category=conferences%2Cexpos%2Cconcerts%2Cfestivals%2Cperforming-arts%2Ccommunity%2Csports
         //String locationString = String.format("%.6f", location.getLatitude())+"%2C"+String.format("%.6f", location.getLongitude());//54.898521%2C23.903597
         String locationString = location.getLatitude()+"%2C"+location.getLongitude();//54.9877946%2C23.9478463
+        String offsetString = "";
 
-        URL obj = new URL("https://api.predicthq.com/v1/events/?end.origin=2019-12-20&within="+distanceKM+"km%40"+locationString+"&offset=10&start_around.origin=2019-11-14");//
-        URL obj2 = new URL("https://api.predicthq.com/v1/events/?offset=10&end.origin=2019-12-20&within="+distanceKM+"km%40"+locationString+"&offset=10&start_around.origin=2019-11-14");//
+        if(offset > 0) offsetString = "&offset="+offset;
+
+        if(Category.equals("All")) Category = "conferences%2Cexpos%2Cconcerts%2Cfestivals%2Cperforming-arts%2Ccommunity%2Csports";
+
+        if(distanceKM < MIN_DISTANCE) distanceKM = MIN_DISTANCE;
+        if(distanceKM > MAX_DISTANCE) distanceKM = MAX_DISTANCE;
+
+
+        URL obj = new URL("https://api.predicthq.com/v1/events/?category="+Category+"&end.origin="+ToDate+"&within="+distanceKM+"km%40"+locationString+""+offsetString+"&start_around.origin="+FromDate);//
+        //URL obj2 = new URL("https://api.predicthq.com/v1/events/?offset=10&end.origin=2019-12-20&within="+distanceKM+"km%40"+locationString+"&offset=10&start_around.origin=2019-11-14");//
 
         //executor
          HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-
 
         Log.i("Request: ", "request URL:" + con.getURL());
 
         //determined what method will be used (GET, POST, PUT, DELETE)
         con.setRequestMethod("GET");
-
         //determine the content type. in this case it is a JSON variable.
 
 
@@ -92,7 +111,6 @@ public class RequestOperator extends Thread
 
         //make request and receive response
         responseCode = con.getResponseCode();
-
         Log.i("Request: ", "response Code:" + con.getResponseCode());
 
         InputStreamReader streamReader;
@@ -104,7 +122,6 @@ public class RequestOperator extends Thread
         {
             streamReader = new InputStreamReader(con.getErrorStream());
         }
-
 
 
         BufferedReader in = new BufferedReader((streamReader));
@@ -121,42 +138,36 @@ public class RequestOperator extends Thread
         //System.out.println(response.toString());
 
         if(responseCode == 200) {
-            return parsingJsonObject(response.toString());
+            return parsingJsonObject(response.toString(), location, distanceKM);
         }
         else
             return null;
     }
 
 
-    public  ModelPost[] parsingJsonObject(String response) throws JSONException {
+    public  ModelPost[] parsingJsonObject(String response, Location location, int distanceKM) throws JSONException {
         //attempts to createa json object of acheiving a response
 
-
         JSONObject objects = new JSONObject(response);
-
 
         int count = objects.optInt("count", 0);
         boolean overflow = objects.optBoolean("overflow", false);
         String next = objects.optString("next", "");
-
 
         JSONArray jArray = objects.getJSONArray("results");
 
         ModelPost[] posts = new ModelPost[jArray.length()]; // nededam 'count' nes negrazina mums visu atsakymu o tik max 10.
 
         //object.a
-        Log.e("Ilgis:", " array: "+jArray.length()+" count: "+count);
+        Log.e("Ilgis:", " array: " + jArray.length() + " count: " + count+ " next: " + next);
 
         //Log.i("Cycle "+0, "object: "+jArray.getJSONObject(0).toString());
-
-        for (int i=0; i < jArray.length(); i++)
-        {
-            try
-            {
+        Log.e("testas", "1");
+        for (int i = 0; i < jArray.length(); i++) {
+            try {
                 posts[i] = new ModelPost();
 
                 JSONObject oneObject = jArray.getJSONObject(i);
-
 
                 //because we will not need ID and user ID, the do not necessarily
                 //get from a server in the JSON object
@@ -189,72 +200,31 @@ public class RequestOperator extends Thread
                 //location
                 JSONArray jArrayLocation = oneObject.getJSONArray("location");
 
-                double[] location = new double[]{jArrayLocation.getDouble(0), jArrayLocation.getDouble(1)};
-                posts[i].setLocation(location);
+                double[] locations = new double[]{jArrayLocation.getDouble(0), jArrayLocation.getDouble(1)};
+                posts[i].setLocation(locations);
 
-
-                /*
-                Log.i("Post"+i, "Id:"+posts[i].getId());
-                Log.i("Post"+i, "Relevance:"+posts[i].getRelevance());
-                Log.i("Post"+i, "title:"+posts[i].getTitle());
-                Log.i("Post"+i, "description:"+posts[i].getDescription());
-                Log.i("Post"+i, "category:"+posts[i].getCategory());
-                Log.i("Post"+i, "labels:"+posts[i].getLabels());
-                Log.i("Post"+i, "rank:"+posts[i].getRank());
-                Log.i("Post"+i, "localRank:"+posts[i].getLocalRank());
-                Log.i("Post"+i, "formatted_address:"+posts[i].getFormatted_address());
-                Log.i("Post"+i, "entity_id:"+posts[i].getEntity_id());
-                Log.i("Post"+i, "type:"+posts[i].getType());
-                Log.i("Post"+i, "name:"+posts[i].getName());
-                Log.i("Post"+i, "duration:"+posts[i].getDuration());
-                Log.i("Post"+i, "start:"+posts[i].getStart());
-                Log.i("Post"+i, "end:"+posts[i].getEnd());
-                Log.i("Post"+i, "updated:"+posts[i].getUpdated());
-                Log.i("LOCATION", "location1: "+jArrayLocation.getDouble(0)+"  location2: "+jArrayLocation.getDouble(1));*/
-
-
-                /*
-
-                {"relevance":0.7062564,
-                "id":"fV2ZEwYPGz7o8RFmBe",
-                "title":"Tarp Dviejų Aušrų: D.Tiffany",
-                "description":"",
-                "category":"concerts",
-                "labels":["concert","music"],
-                "rank":38,
-                "local_rank":55,
-                "entities":[{"formatted_address":"Kaunas\nLithuania","entity_id":"cq4MNr6jGeSj69ScD6when","type":"venue","name":"Lizdas"}],
-                "duration":28800,
-                "start":"2019-11-08T21:00:00Z",
-                "end":"2019-11-09T05:00:00Z",
-                "updated":"2019-11-12T09:16:35Z",
-                "first_seen":"2019-11-12T09:11:49Z",
-                "timezone":"Europe\/Vilnius",
-                "location":[23.920506,54.89642],
-                "scope":"locality",
-                "country":"LT",
-                "place_hierarchies":[["6295630","6255148","597427","864477","598318","598316"]],
-                "state":"active"}
-
-                 */
-
-            } catch (JSONException e)
-            {
+            } catch (JSONException e) {
                 Log.e("JSONException", e.toString());
             }
         }
-
-
-
-
-        /*
-        private int[] location = new int[2]; //    "location": [25.277869,54.684158]
-         */
+        Log.e("testas", "2");
         return posts;
     }
 
+    private void failed(int code){
+        if(listener != null) {
+            listener.failed(code);
+        }
+    }
 
-    /*
+    private void success(ModelPost[] publications){
+        if(listener != null) {
+            listener.success(publications);
+        }
+    }
+}
+
+  /*
     Get your JSON:
 
     Assume you have a json string
@@ -303,15 +273,48 @@ public class RequestOperator extends Thread
 
     */
 
-    private void failed(int code){
-        if(listener != null) {
-            listener.failed(code);
-        }
-    }
 
-    private void success(ModelPost[] publications){
-        if(listener != null) {
-            listener.success(publications);
-        }
-    }
-}
+/*
+    Log.i("Post"+i, "Id:"+posts[i].getId());
+    Log.i("Post"+i, "Relevance:"+posts[i].getRelevance());
+    Log.i("Post"+i, "title:"+posts[i].getTitle());
+    Log.i("Post"+i, "description:"+posts[i].getDescription());
+    Log.i("Post"+i, "category:"+posts[i].getCategory());
+    Log.i("Post"+i, "labels:"+posts[i].getLabels());
+    Log.i("Post"+i, "rank:"+posts[i].getRank());
+    Log.i("Post"+i, "localRank:"+posts[i].getLocalRank());
+    Log.i("Post"+i, "formatted_address:"+posts[i].getFormatted_address());
+    Log.i("Post"+i, "entity_id:"+posts[i].getEntity_id());
+    Log.i("Post"+i, "type:"+posts[i].getType());
+    Log.i("Post"+i, "name:"+posts[i].getName());
+    Log.i("Post"+i, "duration:"+posts[i].getDuration());
+    Log.i("Post"+i, "start:"+posts[i].getStart());
+    Log.i("Post"+i, "end:"+posts[i].getEnd());
+    Log.i("Post"+i, "updated:"+posts[i].getUpdated());
+    Log.i("LOCATION", "location1: "+jArrayLocation.getDouble(0)+"  location2: "+jArrayLocation.getDouble(1));*/
+
+
+    /*
+
+    {"relevance":0.7062564,
+    "id":"fV2ZEwYPGz7o8RFmBe",
+    "title":"Tarp Dviejų Aušrų: D.Tiffany",
+    "description":"",
+    "category":"concerts",
+    "labels":["concert","music"],
+    "rank":38,
+    "local_rank":55,
+    "entities":[{"formatted_address":"Kaunas\nLithuania","entity_id":"cq4MNr6jGeSj69ScD6when","type":"venue","name":"Lizdas"}],
+    "duration":28800,
+    "start":"2019-11-08T21:00:00Z",
+    "end":"2019-11-09T05:00:00Z",
+    "updated":"2019-11-12T09:16:35Z",
+    "first_seen":"2019-11-12T09:11:49Z",
+    "timezone":"Europe\/Vilnius",
+    "location":[23.920506,54.89642],
+    "scope":"locality",
+    "country":"LT",
+    "place_hierarchies":[["6295630","6255148","597427","864477","598318","598316"]],
+    "state":"active"}
+
+ */

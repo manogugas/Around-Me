@@ -3,6 +3,7 @@ package com.example.aroundme;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
@@ -25,6 +26,7 @@ public class FirstActivity extends AppCompatActivity
     private Button optionsButton;
     private Context context = this;
 
+    public static NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -38,12 +40,10 @@ public class FirstActivity extends AppCompatActivity
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications).build();
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        //NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
-
-
 
 
 
@@ -60,6 +60,10 @@ public class FirstActivity extends AppCompatActivity
        // searchButton.setOnClickListener(startSearchActivity);
        // searchButton.setOnLongClickListener(startSearchActivityLong);
     }
+
+
+
+
 /*
     View.OnClickListener startOptionsActivity = new View.OnClickListener(){
         @Override

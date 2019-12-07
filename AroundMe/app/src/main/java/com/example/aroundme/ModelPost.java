@@ -1,10 +1,13 @@
 package com.example.aroundme;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONArray;
 
 import java.lang.reflect.Array;
 
-public class ModelPost
+public class ModelPost implements Parcelable
 {
     private String id;
     private double relevance;
@@ -49,6 +52,38 @@ public class ModelPost
         this.updated = updated;
         this.location = location;
     }
+
+    protected ModelPost(Parcel in) {
+        id = in.readString();
+        relevance = in.readDouble();
+        title = in.readString();
+        description = in.readString();
+        category = in.readString();
+        labels = in.readString();
+        rank = in.readInt();
+        localRank = in.readInt();
+        formatted_address = in.readString();
+        entity_id = in.readString();
+        type = in.readString();
+        name = in.readString();
+        duration = in.readInt();
+        start = in.readString();
+        end = in.readString();
+        updated = in.readString();
+        location = in.createDoubleArray();
+    }
+
+    public static final Creator<ModelPost> CREATOR = new Creator<ModelPost>() {
+        @Override
+        public ModelPost createFromParcel(Parcel in) {
+            return new ModelPost(in);
+        }
+
+        @Override
+        public ModelPost[] newArray(int size) {
+            return new ModelPost[size];
+        }
+    };
 
     public void setId(String id) {
         this.id = id;
@@ -184,6 +219,32 @@ public class ModelPost
 
     public double[] getLocation() {
         return location;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeDouble(relevance);
+        dest.writeString(title);
+        dest.writeString(description);
+        dest.writeString(category);
+        dest.writeString(labels);
+        dest.writeInt(rank);
+        dest.writeInt(localRank);
+        dest.writeString(formatted_address);
+        dest.writeString(entity_id);
+        dest.writeString(type);
+        dest.writeString(name);
+        dest.writeInt(duration);
+        dest.writeString(start);
+        dest.writeString(end);
+        dest.writeString(updated);
+        dest.writeDoubleArray(location);
     }
 }
 

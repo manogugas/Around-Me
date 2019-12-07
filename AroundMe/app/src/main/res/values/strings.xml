@@ -11,13 +11,28 @@
     <string name="AddButton">Add</string>
     <string name="RemoveButton">Remove</string>
 
+    <string name="send_request">Search</string>
 
+    <string name="filters">Filters</string>
     <string name="ImageDescription">description</string>
     <string name="ImageTitle_Event">title</string>
     <string name="ImageDescription_Event">description</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
+    <string name="title_List">Event List</string>
+    <string name="title_Map">Search</string>
     <string name="title_notifications">Notifications</string>
+
+
+
+    <string-array name="categories_array">
+        <item>conferences</item>
+        <item>expos</item>
+        <item>concerts</item>
+        <item>festivals</item>
+        <item>performing-arts</item>
+        <item>community</item>
+        <item>sports</item>
+        <item>All</item>
+    </string-array>
 
 </resources>
