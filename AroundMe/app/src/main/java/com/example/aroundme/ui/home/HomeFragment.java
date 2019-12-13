@@ -49,12 +49,12 @@ public class HomeFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
+/*
         if (savedInstanceState != null) {
             Log.e("UZKRAUTA", "uzkrauta Event List (HOME)");
             //Restore the fragment's instance
-            mMyFragment = getActivity().getSupportFragmentManager().getFragment(savedInstanceState, "HomeFragment");
-        }
+            mMyFragment = getChildFragmentManager().getFragment(savedInstanceState, "HomeFragment");
+        }*/
 
         homeViewModel =
                 ViewModelProviders.of(this).get(HomeViewModel.class);
@@ -103,7 +103,7 @@ public class HomeFragment extends Fragment {
 
                 CachePot.getInstance().clear("0");
                 CachePot.getInstance().push("0", position);
-
+                Log.e("PUSH", "stumiam: "+position);
                 navController.navigate(R.id.navigation_notifications);
 
             }
@@ -118,7 +118,21 @@ public class HomeFragment extends Fragment {
         super.onSaveInstanceState(outState);
 
         //Save the fragment's instance
-        getActivity().getSupportFragmentManager().putFragment(outState, "HomeFragment", this);
+        //getChildFragmentManager().putFragment(outState, "HomeFragment", this);
     }
 
 }
+
+/*
+
+<style name="BaseAppTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="buttonStyle">@drawable/buttonstyle</item>
+        <item name="colorPrimary">@color/colorPrimaryLight</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textColor">@color/colorText</item>
+
+
+    </style>
+ */

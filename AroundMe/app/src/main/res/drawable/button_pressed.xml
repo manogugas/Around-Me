@@ -7,9 +7,9 @@
 
     <corners
         android:radius="7dp"
-        android:bottomLeftRadius="500dp"
+        android:bottomLeftRadius="0dp"
         android:topRightRadius="500dp"
-        android:bottomRightRadius="500dp"
+        android:bottomRightRadius="0dp"
         android:topLeftRadius="500dp"/>
 
     <padding
@@ -22,6 +22,6 @@
 
     <gradient
         android:startColor="#599BAC"
-        android:endColor="@color/colorAccentDark"
+        android:endColor="@color/colorAccentSearchDark"
         android:angle="270" />
 </shape>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ndroid="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_alignParentBottom="false"
+    android:background="@color/colorGradientCenter"
+    android:orientation="vertical"
+    android:padding="15sp">
+
+
+    <LinearLayout
+        android:id="@+id/linearLayoutSearch"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/gradient_animation"
+        android:orientation="vertical"
+        android:padding="5dp">
+
+        <TextView
+            android:id="@android:id/text1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="marquee"
+            android:paddingBottom="20dp"
+            android:singleLine="true"
+            android:text="@string/filters"
+            android:textAlignment="center"
+            android:textColor="@color/colorText"
+            android:textSize="40sp" />
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:ellipsize="marquee"
+            android:paddingBottom="20dp"
+            android:singleLine="true"
+            android:text="Category"
+            android:textAlignment="textStart"
+            android:textColor="@color/colorText"
+            android:textSize="14sp" />
+
+        <Spinner
+            android:id="@+id/CategoriesSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="20dp"
+            android:entries="@array/categories_array" />
+
+        <TextView
+            android:id="@+id/textView8"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:ellipsize="marquee"
+            android:paddingBottom="20dp"
+            android:singleLine="true"
+            android:text="Distance Input (km)"
+            android:textAlignment="textStart"
+            android:textColor="@color/colorText"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/distanceInputEditTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="20dp"
+            android:ems="5"
+            android:inputType="number"
+            android:textSize="25sp" />
+
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:ellipsize="marquee"
+            android:paddingBottom="20dp"
+            android:singleLine="true"
+            android:text="Search From Date"
+            android:textAlignment="textStart"
+            android:textColor="@color/colorText"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/dateInputFromTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="20dp"
+            android:text="From Date"
+            android:textSize="25sp" />
+
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:ellipsize="marquee"
+            android:paddingBottom="20dp"
+            android:singleLine="true"
+            android:text="Search To Date"
+            android:textAlignment="textStart"
+            android:textAllCaps="false"
+            android:textColor="@color/colorText"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/dateInputToTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="20dp"
+            android:text="To Date"
+            android:textAlignment="textStart"
+            android:textSize="25sp" />
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -14,6 +14,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -46,7 +47,6 @@ public class FirstActivity extends AppCompatActivity
         NavigationUI.setupWithNavController(navView, navController);
 
 
-
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
@@ -61,10 +61,15 @@ public class FirstActivity extends AppCompatActivity
        // searchButton.setOnLongClickListener(startSearchActivityLong);
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        startService(new Intent(this, NotificationService.class));
+    }
 
 
-
-/*
+    /*
     View.OnClickListener startOptionsActivity = new View.OnClickListener(){
         @Override
         public  void onClick(View v)

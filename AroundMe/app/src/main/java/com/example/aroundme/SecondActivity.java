@@ -94,7 +94,7 @@ public class SecondActivity extends AppCompatActivity implements OnMapReadyCallb
 
 
 
-        Intent intent = getIntent();
+        Intent intent = getIntent();/*
         if(getIntent().getBooleanExtra("flag", true))
         {
             items.add(new ListItem("Jack", R.drawable.ic_3d_rotation_black_48dp, "Mathematics, Chemistry"));
@@ -110,7 +110,7 @@ public class SecondActivity extends AppCompatActivity implements OnMapReadyCallb
             items.add(new ListItem("Chemistry", R.drawable.ic_3d_rotation_black_48dp, "Mat testfabbbbbbbbbbbbbbbbshjkfarjhi" + "sapcee and change"));
             items.add(new ListItem("Informatics", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdcccccccccccccccafdshjkfarjhi" + "sapcee and change"));
             items.add(new ListItem("Geography", R.drawable.ic_3d_rotation_black_48dp, "Mat testfasdfjddddddddddddddddddfarjhi" + "sapcee and change"));
-        }
+        }*/
         adapter = new ListAdapter(this, items);
         mylist.setAdapter((adapter));
 
@@ -137,7 +137,7 @@ public class SecondActivity extends AppCompatActivity implements OnMapReadyCallb
     View.OnClickListener addButtonClick = new View.OnClickListener(){
         @Override
         public void onClick(View v) {
-            items.add(new ListItem("Pridetas", R.drawable.ic_3d_add_black_48dp, "Added list item" + "sapcee and change"));
+            //items.add(new ListItem("Pridetas", R.drawable.ic_3d_add_black_48dp, "Added list item" + "sapcee and change"));
             adapter.notifyDataSetChanged();
         }
     };

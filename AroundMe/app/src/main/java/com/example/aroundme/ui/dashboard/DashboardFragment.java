@@ -7,12 +7,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -54,11 +57,13 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -104,7 +109,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
 
     private ModelPost[] publication;
     //private ModelPost[] publication2;
-    private ModelPost[] publicationfinal;
+    static ModelPost[] publicationfinal;
 
     Button searchButton;
     private static int inputDistance = 20;
@@ -121,7 +126,13 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
     DatePickerDialog.OnDateSetListener date2;
     private String dateString = "";
 
-    private Fragment mMyFragment;
+    private ModelPost savedpublication;
+
+    //private Fragment mMyFragment = this;
+
+     EditText distanceInput;
+     TextView dateInputFrom;
+     TextView dateInputTo;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         dashboardViewModel =
@@ -141,33 +152,26 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
         //dropdown.setAdapter(staticAdapter);
 
 
-
-
+/*
         if (savedInstanceState != null) {
-            Log.e("UZKRAUTA", "uzkrauta Search (DashBoard)");
+            Log.e("onCreateView", "uzkrauta Search (DashBoard)");
 
-            mMyFragment = getActivity().getSupportFragmentManager().getFragment(savedInstanceState, "DashboardFragment");
+           // mMyFragment = getChildFragmentManager().getFragment(savedInstanceState, "DashboardFragment");
             //Restore the fragment's instance
-            Log.e("LOADED", "uzkrauta issaugota info");
+            //Log.e("LOADED", "uzkrauta issaugota info");
 
             publicationfinal = (ModelPost[]) savedInstanceState.getParcelableArray("Publication");
 
             mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
 
-            LatLng location;
+        }*/
 
 
-            for(int i = 0; i < publicationfinal.length; i++) {
-                double[] eventLoc = publicationfinal[i].getLocation();
-
-                location = new LatLng(eventLoc[1], eventLoc[0]);
-                mMap.addMarker(new MarkerOptions().position(location).title("\"" + publicationfinal[i].getTitle() + "\""));
-            }
-        }
 
         try{
             publicationfinal = CachePot.getInstance().pop("DashBoard");
+
         } catch (Exception ex)
         {
             Log.e("Exception", "null");
@@ -205,6 +209,11 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
 
         return root;
     }
+
+    public static ModelPost[] GetPublication(){
+        return publicationfinal;
+    }
+
 /*
     edittext.setOnClickListener(new DialogInterface.OnClickListener() {
 
@@ -254,11 +263,14 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
     final View.OnClickListener searchButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+
+            builder.setView(R.layout.custom_search_dialog);
 
             LayoutInflater inflater = getLayoutInflater();
-            View view = inflater.inflate(R.layout.searchtitleviewlayout, null);
-            builder.setCustomTitle(view);
+            View view = inflater.inflate(R.layout.custom_search_dialog, null);
+
+            //builder.setCustomTitle(view);
             //builder.setTitle("Filters");
 
             // Set up the input
@@ -269,60 +281,91 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
 
 
             //Context context = mapView.getContext();
-            LinearLayout layout = new LinearLayout(getContext());
-            layout.setOrientation(LinearLayout.VERTICAL);
+            //LinearLayout layout = new LinearLayout(getContext());
+            //layout.setOrientation(LinearLayout.VERTICAL);
 
             // Add a TextView here for the "Title" label, as noted in the comments
-            final Spinner titleBox = new Spinner(getContext());
+            final Spinner titleBox = view.findViewById(R.id.CategoriesSpinner);
             //titleBox.setHint("Title");
 
-            ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter.createFromResource(getContext(), R.array.categories_array, R.layout.spinneritemstyle);
+            //ArrayAdapter<CharSequence> staticAdapter = ArrayAdapter.createFromResource(getContext(), R.array.categories_array, R.layout.spinneritemstyle);
             //set the spinners adapter to the previously created one.
-            titleBox.setAdapter(staticAdapter);
+            //titleBox.setAdapter(staticAdapter);
 
-            layout.addView(titleBox); // Notice this is an add method
+            //layout.addView(titleBox); // Notice this is an add method
+
+//final EditText
+            distanceInput = view.findViewById(R.id.distanceInputEditTextView);
+
+            //distanceInput.setText("20");
+            //Log.e("TAG", "tekstas: "+distanceInput.getText());
+            distanceInput.setHint("Distance");
+            distanceInput.setInputType(InputType.TYPE_CLASS_NUMBER );
+            //layout.addView(distanceInput);
 
 
-            final EditText distanceInput = new EditText(getContext());
-            distanceInput.setHint("Distance from you (in km)");
-            distanceInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NULL);
-            layout.addView(distanceInput);
 
             /*
             final EditText dateInputTo = new EditText(getContext());
             dateInputTo.setHint("To event date");
             dateInputTo.setInputType(InputType.TYPE_CLASS_DATETIME | InputType.TYPE_NULL);*/
-
-            final TextView dateInputFrom = new TextView(getContext());
+            //final TextView
+            dateInputFrom = view.findViewById(R.id.dateInputFromTextView);
+            //Log.e("TAG", "tekstas: "+dateInputFrom.getText());
             dateInputFrom.setText("From event date");
-            dateInputFrom.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 23);
-            dateInputFrom.setPadding(20, 30, 0, 0);
-            layout.addView(dateInputFrom);
+            //dateInputFrom.setOnClickListener(dateInputFromListener);
+            //dateInputFrom.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 23);
+            //dateInputFrom.setPadding(20, 30, 0, 0);
+            //layout.addView(dateInputFrom);
 
-
-            final TextView dateInputTo = new TextView(getContext());
+            //final TextView
+            dateInputTo = view.findViewById(R.id.dateInputToTextView);
+            //Log.e("TAG", "tekstas: "+dateInputTo.getText());
             dateInputTo.setText("To event date");
-            dateInputTo.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 23);
-            dateInputTo.setPadding(20, 20, 0, 0);
-            layout.addView(dateInputTo);
+            //dateInputTo.setOnClickListener(dateInputToListener);
+            //dateInputTo.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 23);
+            //dateInputTo.setPadding(20, 20, 0, 0);
+            //layout.addView(dateInputTo);
 
-            builder.setView(layout); // Again this is a set method, not add
-
-//<item name="android:background">@color/colorBackgroundTransparent</item>
+            //builder.setView(layout); // Again this is a set method, not add
+            builder.setView(view); // Again this is a set method, not add
+            //<item name="android:background">@color/colorBackgroundTransparent</item>
                 /*
                 new DatePickerDialog(getContext(), date, myCalendar
                         .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
                         myCalendar.get(Calendar.DAY_OF_MONTH)).show();*/
 
-
             dateInputFrom.setOnClickListener(new View.OnClickListener() {
-                @Override
+
                 public void onClick(View v) {
+                    Log.e("veika", "veikia1");
                     new DatePickerDialog(getContext(), date, myCalendar
                             .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
                             myCalendar.get(Calendar.DAY_OF_MONTH)).show();
                 }
             });
+
+                /*
+            final View.OnClickListener dateInputFromListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.e("veika","veikia1");
+                    new DatePickerDialog(getContext(), date, myCalendar
+                            .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                            myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+                }
+            };*/
+
+            /*
+            final View.OnClickListener dateInputToListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new DatePickerDialog(getContext(), date2, myCalendar2
+                            .get(Calendar.YEAR), myCalendar2.get(Calendar.MONTH),
+                            myCalendar2.get(Calendar.DAY_OF_MONTH)).show();
+                }
+            };*/
+
 
             dateInputTo.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -415,10 +458,18 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
                     //m_Text = input.getText().toString();
                     SelectedCategory = titleBox.getSelectedItem().toString();
 
+
+
                     //distance from user
                     String value= distanceInput.getText().toString();
-                    inputDistance = Integer.parseInt(value);
 
+                    Log.e("VALUE","value: "+value);
+
+                    if(value.length() < 1) {
+                        inputDistance = 1;
+                    }
+                    else
+                        inputDistance = Integer.parseInt(value);
                     //resetting request/ map markers/ map distance circle
                     requestDone = false;
                     inputOffset = 0;
@@ -433,6 +484,15 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
                     dialog.cancel();
                 }
             });
+
+/*
+            getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+
+            AnimationDrawable animDrawable = (AnimationDrawable) view.findViewById(R.id.linearLayoutSearch).getBackground();
+
+            animDrawable.setEnterFadeDuration(10);
+            animDrawable.setExitFadeDuration(5000);
+            animDrawable.start();*/
 
             builder.show();
             //sendRequest();
@@ -479,7 +539,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
 
                     Log.i("aaa", "ilgis: "+publicationfinal.length);
 
-                   CachePot.getInstance().push(1, publicationfinal);
+                   CachePot.getInstance().push("2", publicationfinal);
 
                    for(int i = 0; i < publicationfinal.length; i++)
                    {
@@ -490,8 +550,22 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
                        mMap.addMarker(new MarkerOptions().position(location).title("\""+publicationfinal[i].getTitle()+"\""));
 
 
-                       items.add(new ListItem(publicationfinal[i].getTitle(), R.drawable.ic_people, publicationfinal[i].getName()+"\n"
-                               + publicationfinal[i].getFormatted_address()));
+                       int image;
+
+                       switch (publicationfinal[i].getCategory()) //ic_name are light mode
+                       {
+                           case "conferences":  image = R.drawable.ic_people_light; break;
+                           case "expos": image = R.drawable.ic_expos_light; break;
+                           case "concerts": image = R.drawable.ic_concerts_light; break;
+                           case "festivals": image = R.drawable.ic_festivals_light; break;
+                           case "performing-arts": image = R.drawable.ic_performing_arts_light; break;
+                           case "community": image = R.drawable.ic_people_light; break;
+                           case "sports": image = R.drawable.ic_sports_light; break;
+                           default: image = R.drawable.ic_default_light; break;
+                       }
+
+                       items.add(new ListItem(publicationfinal[i].getTitle(), image, publicationfinal[i].getDescription(),
+                               publicationfinal[i].getCategory(), publicationfinal[i].getName(), publicationfinal[i].getStart(), publicationfinal[i].getEnd(), publicationfinal[i].getLocation()));
 
                    }
                    EventList = items;
@@ -511,8 +585,9 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
         //this.publication2 = publication;
         if(requestDone)
         {
-            Log.e("testas", "3");
             publicationfinal = new ModelPost[this.publication.length + publication.length];
+
+            Log.e("publicationfinal ", "Ilgis: "+publicationfinal.length + " sudeti: "+this.publication.length+" + "+publication.length);
             int index = this.publication.length;
 
             for (int i = 0; i < this.publication.length; i++) {
@@ -521,7 +596,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
             for (int i = 0; i < publication.length; i++) {
                 publicationfinal[i + index] = publication[i];
             }
-            Log.e("testas", "4");
+
             updatePublication();
         }
         else
@@ -547,17 +622,13 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.e("onSaveInstanceState","saugom dashboard");
-        if (mMap != null) {
+       /* if (mMap != null) {
             outState.putParcelable(KEY_CAMERA_POSITION, mMap.getCameraPosition());
             outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
 
-        }
+        }*/
 
-        outState.putParcelableArray("Publication", publicationfinal);
-
-        //Save the fragment's instance
-        //getActivity().getSupportFragmentManager().putFragment(outState, "DashboardFragment", this);
-
+        //outState.putParcelableArray("Publication", publicationfinal);
     }
 
     @Override
@@ -581,15 +652,41 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
     {
         if(publicationfinal != null)
         {
+            Log.e("Suveikia MARKERS","SUVEIKEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEe");
             LatLng location;
 
+            savedpublication = CachePot.getInstance().pop("5");
 
             for(int i = 0; i < publicationfinal.length; i++) {
                 double[] eventLoc = publicationfinal[i].getLocation();
 
                 location = new LatLng(eventLoc[1], eventLoc[0]);
-                mMap.addMarker(new MarkerOptions().position(location).title("\"" + publicationfinal[i].getTitle() + "\""));
+
+
+                if(savedpublication == publicationfinal[i])
+                {
+                    Log.e("IF VIDUS","pridedam skirtinga marker");
+                    Marker marker = mMap.addMarker(new MarkerOptions().position(location).title("\""+savedpublication.getTitle()+"\"").rotation(180));
+                    marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                    marker.showInfoWindow();
+                }
+                else
+                {
+                    mMap.addMarker(new MarkerOptions().position(location).title("\"" + publicationfinal[i].getTitle() + "\""));
+                }
             }
+
+
+
+            if(savedpublication != null)
+            {
+
+                Log.e("!= null", "savedPub: "+savedpublication.getLocation()[0]+" title"+savedpublication.getTitle());
+                 location = new LatLng(savedpublication.getLocation()[0], savedpublication.getLocation()[1]);
+
+
+            }
+
         }
     }
 

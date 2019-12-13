@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ndroid="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <TextView
+        android:id="@android:id/text1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="marquee"
+        android:paddingBottom="20dp"
+        android:singleLine="true"
+        android:text="@string/filters"
+        android:textAlignment="center"
+        android:textColor="@color/colorText"
+        android:textSize="40sp" />
+
+    <Spinner
+        android:id="@+id/CategoriesSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:entries="@array/categories_array" />
+
+    <EditText
+        android:id="@+id/distanceInputEditTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ems="10"
+        android:hint="Distance from you (in km)"
+        android:inputType="number" />
+
+    <TextView
+        android:id="@+id/dateInputFromTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="From event date"
+        android:textSize="30sp" />
+
+    <TextView
+        android:id="@+id/dateInputToTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="To event date"
+        android:textAlignment="textStart"
+        android:textSize="30sp" />
+
+</LinearLayout>

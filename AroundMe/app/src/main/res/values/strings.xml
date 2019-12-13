@@ -13,7 +13,7 @@
 
     <string name="send_request">Search</string>
 
-    <string name="filters">Filters</string>
+    <string name="filters">Event Search</string>
     <string name="ImageDescription">description</string>
     <string name="ImageTitle_Event">title</string>
     <string name="ImageDescription_Event">description</string>

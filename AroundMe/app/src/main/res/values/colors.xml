@@ -2,8 +2,16 @@
 <resources>
     <color name="colorBackgroundTransparent">#0000BCD4</color>
     <color name="colorPrimaryLight">#00BCD4</color>
-    <color name="colorPrimaryDark">#C600BCD4</color>
+    <color name="colorPrimaryDark">#00BCD4</color>
     <color name="colorAccent">#3F51B5</color>
-    <color name="colorAccentDark">#C6599BAC</color>
-    <color name="colorText">#4E4E4E</color>
+    <color name="colorAccentDark">#80599BAC</color>
+    <color name="colorAccentSearchDark">#80599BAC</color>
+    <color name="colorText">#000000</color>
+
+    <color name="colorGradientStart">#00BCD4</color>
+    <color name="colorGradientCenter">#00BCD4</color>
+    <color name="colorGradientEnd">#3F51B5</color>
+
+
+    <color name="colorPrimaryLightTransparent">#1A00BCD4</color>
 </resources>
