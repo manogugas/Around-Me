@@ -6,12 +6,14 @@
     <color name="colorAccent">#3F51B5</color>
     <color name="colorAccentDark">#80599BAC</color>
     <color name="colorAccentSearchDark">#80599BAC</color>
+    <color name="disabledColorText">#4E4E4E</color>
     <color name="colorText">#000000</color>
 
-    <color name="colorGradientStart">#00BCD4</color>
-    <color name="colorGradientCenter">#00BCD4</color>
-    <color name="colorGradientEnd">#3F51B5</color>
+    <color name="colorGradientStart">#FFFFFF</color>
+    <color name="colorGradientCenter">#FFFFFF</color>
+    <color name="colorGradientEnd">#00BCD4</color>
 
+    <color name="colorWhite">#FFFFFFFF</color>
 
     <color name="colorPrimaryLightTransparent">#1A00BCD4</color>
 </resources>

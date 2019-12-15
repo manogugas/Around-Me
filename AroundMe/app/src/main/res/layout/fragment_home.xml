@@ -6,9 +6,12 @@
     android:layout_height="match_parent">
 
     <LinearLayout
+        android:id="@+id/linearLayoutHome"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@drawable/gradient_animation"
+        android:padding="20dp">
 
         <ListView
             android:id="@+id/eventList"

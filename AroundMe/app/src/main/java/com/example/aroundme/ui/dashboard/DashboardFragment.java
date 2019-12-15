@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
@@ -45,6 +46,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.aroundme.EventInfo;
 import com.example.aroundme.IndicatingView;
+import com.example.aroundme.Lab3;
 import com.example.aroundme.ListAdapter;
 import com.example.aroundme.ListItem;
 import com.example.aroundme.ModelPost;
@@ -191,6 +193,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
 
         searchButton = root.findViewById(R.id.searchButton);
         searchButton.setOnClickListener(searchButtonListener);
+        searchButton.setOnLongClickListener(searchButtonLongListener);
 
         dashboardViewModel.getText().observe(this, new Observer<String>() {
             @Override
@@ -259,11 +262,20 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
         // TODO Auto-generated method stub
     }
 
+    View.OnLongClickListener searchButtonLongListener = new View.OnLongClickListener() {
+        @Override
+        public boolean onLongClick(View v) {
+            Intent intent = new Intent(getContext(), Lab3.class);
+            getContext().startActivity(intent);
+            return true;
+        }
+    };
+
 
     final View.OnClickListener searchButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.AlertDialogTheme);
 
             builder.setView(R.layout.custom_search_dialog);
 
@@ -485,17 +497,28 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback, R
                 }
             });
 
-/*
-            getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+
+            //getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
             AnimationDrawable animDrawable = (AnimationDrawable) view.findViewById(R.id.linearLayoutSearch).getBackground();
 
             animDrawable.setEnterFadeDuration(10);
             animDrawable.setExitFadeDuration(5000);
-            animDrawable.start();*/
+            animDrawable.start();
 
             builder.show();
             //sendRequest();
+
+
+/*
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+            Button b = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+
+            if(b != null) {
+                b.setBackgroundResource(R.drawable.gradient_start);
+            }*/
         }
     };
 

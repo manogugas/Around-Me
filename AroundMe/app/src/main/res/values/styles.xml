@@ -12,6 +12,30 @@
 
     </style>
 
+
+    <style name="AlertDialogTheme" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="buttonBarNegativeButtonStyle">@style/NegativeButtonStyle</item>
+        <item name="buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
+
+        <item name="android:textStyle">bold</item>
+        <item name="android:headerDividersEnabled">true</item>
+        <item name="android:typeface">normal</item>
+        <item name="android:background">@color/colorWhite</item>
+    </style>
+
+    <style name="NegativeButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/colorText</item>
+        <item name="android:background">@drawable/button2</item>
+        <item name="android:padding">10dp</item>
+    </style>
+
+    <style name="PositiveButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/colorText</item>
+        <item name="android:background">@drawable/button2</item>
+        <item name="android:padding">10dp</item>
+    </style>
+
+
     <!-- declare the theme name that's actually applied in the manifest file -->
     <style name="AppTheme" parent="BaseAppTheme" />
 </resources>

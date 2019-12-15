@@ -5,6 +5,7 @@ import android.app.FragmentTransaction;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -108,6 +109,15 @@ public class HomeFragment extends Fragment {
 
             }
         });
+
+
+        AnimationDrawable animDrawable = (AnimationDrawable) root.findViewById(R.id.linearLayoutHome).getBackground();
+
+
+        animDrawable.setEnterFadeDuration(10);
+        animDrawable.setExitFadeDuration(5000);
+        animDrawable.start();
+
 
         return root;
     }

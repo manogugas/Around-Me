@@ -37,8 +37,13 @@ import com.example.aroundme.R;
 import com.example.aroundme.ui.dashboard.DashboardFragment;
 import com.github.kimkevin.cachepot.CachePot;
 
+import java.lang.reflect.Array;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
@@ -46,6 +51,20 @@ import static com.example.aroundme.FirstActivity.navController;
 
 public class NotificationsFragment extends Fragment
 {
+    public static String[] headings = {
+        "HEY",
+        "HELLO",
+        "YO",
+        "HEY HUMAN"
+    };
+
+    public static String[] descriptions = {
+            "Check out nearby events!",
+            "You should check what's happening around you.",
+            "Psssst, check what events are around you."
+    };
+
+
 
     private NotificationsViewModel notificationsViewModel;
 
@@ -92,7 +111,7 @@ public class NotificationsFragment extends Fragment
         navigateButton.setOnClickListener(navigaveImageButtonListener);
 
 
-        getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        //getActivity().getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
         AnimationDrawable animDrawable = (AnimationDrawable) root.findViewById(R.id.linearLayoutNotifications).getBackground();
 
@@ -134,11 +153,36 @@ public class NotificationsFragment extends Fragment
             Log.e("gotVALUE", ""+id);
             Log.e("gotVALUE2", ""+publication[id].getTitle());
             titleTextView.setText(publication[id].getTitle());
-            descriptionTextView.setText(publication[id].getDescription());
+
+            if(publication[id].getDescription().length() < 1)
+            {
+                descriptionTextView.setText("No Description Provided.");
+            }
+            else {
+                descriptionTextView.setText(publication[id].getDescription());
+            }
             categoryTextView.setText(publication[id].getCategory());
             locationNameTextView.setText(publication[id].getName());
-            startDateTextView.setText(publication[id].getStart());
-            endDateTextView.setText(publication[id].getEnd());
+
+            Date d = null;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd  HH:mm");
+
+
+            try {
+                d = sdf.parse(publication[id].getStart());
+            } catch (ParseException ex) {
+                Log.v("Exception", ex.getLocalizedMessage());
+            }
+            startDateTextView.setText(formatter.format(d));
+
+
+            try {
+                d = sdf.parse(publication[id].getEnd());
+            } catch (ParseException ex) {
+                Log.v("Exception", ex.getLocalizedMessage());
+            }
+            endDateTextView.setText(formatter.format(d));
 
         }
         return root;
@@ -195,7 +239,10 @@ public class NotificationsFragment extends Fragment
 
         NotificationChannel notificationChannel = CreateNotificationChannel(context);
 
-        Notification notification = CreateNotification(NOTIFICATION_CHANNEL_ID, "Title", "description", R.drawable.ic_map_search_events, R.drawable.ic_map_search_events, context );
+        String randomHeadingStr = headings[new Random().nextInt(headings.length)];
+        String randomDescriptionStr = descriptions[new Random().nextInt(descriptions.length)];
+
+        Notification notification = CreateNotification(NOTIFICATION_CHANNEL_ID, randomHeadingStr, randomDescriptionStr, R.drawable.ic_map_search_events, R.drawable.ic_map_search_events, context );
 
         //This is what will will issue the notification i.e.notification will be visible
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(context);
